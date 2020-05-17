@@ -1,9 +1,99 @@
+#Predictive parser for TinyC language
+import re
+import sys
+
 #global variables
 EPSILON  = "e"
 count = 0
 tokenArr = []
+tokList = []   
 
-#converts tokens from the scanner to nonterminals
+def getFile():
+    sys.stdout = open('parse_tree.txt', 'w')         # outputs the output of the code to text file.   
+    with open(sys.argv[1], 'r') as my_file:          # uses the commandline argument to input file
+        contents = my_file.read();
+        return contents
+
+#------------- SCANNER----------------------------------------------------------------------------
+#this function matches the string to a keyword or symbol and adds it to the list
+def getToken(t):
+    if t == '(':
+        tok = '''LP: "("'''
+    elif t == ')':
+        tok = '''RP: ")"'''
+    elif t == '<':
+        tok = '''COMPARE: "<"'''
+    elif t == '=':
+        tok = '''ASGN: "="'''
+    elif t == ';':
+        tok = '''SC: ";"'''
+    elif t == '+':
+        tok = '''ADD: "+"'''
+    elif t == '-':
+        tok = '''SUB: "-"'''
+    elif t == 'if':
+        tok = '''IF: "if"'''
+    elif t == 'then':
+        tok = '''THEN: "then"'''
+    elif t == 'else':
+        tok = '''ELSE: "else"'''
+    elif t == 'while':
+        tok = '''WHILE: "while"'''
+    elif t == 'do':
+        tok = '''DO: "do"'''
+    elif findId(t)==True:
+        tok = "id: "+ '''"'''+ t + '''"'''
+    elif findNum(t)==True:
+        tok = "num: "+ '''"'''+ t + '''"''' 
+    else:
+        tok = 'LEXICAL_ERROR'
+    return tok
+
+#this function checks if the string is an id. Must match alphabetical and have length of 1. Returns true or false.
+def findId(t):
+    x = re.match("[a-z]",t)
+    if x and len(t)==1 :
+        return True
+
+#this function checks if the string is a number. Returns true or false.
+#https://stackoverflow.com/questions/20793578/regex-for-a-valid-32-bit-signed-integer
+def findNum(t):
+    x = re.match("^-?(\d{1,9}|1\d{9}|2(0\d{8}|1([0-3]\d{7}|4([0-6]\d{6}|7([0-3]\d{5}|4([0-7]\d{4}|8([0-2]\d{3}|3([0-5]\d{2}|6([0-3]\d|4[0-7])))))))))$|^-2147483648$",t)
+    if x:
+        return True
+
+#This function is a "by hand" Scanner for the modified Tiny-C language. It outputs a dictionary of symbols and tokens extracted from an input source
+#code into an array to be parsed. 
+def scanner():
+    global tokList
+    string = getFile();    
+    KWS = ['(', ')', '=', ';', '+', '-', '<', '^-?(\d{1,9}|1\d{9}|2(0\d{8}|1([0-3]\d{7}|4([0-6]\d{6}|7([0-3]\d{5}|4([0-7]\d{4}|8([0-2]\d{3}|3([0-5]\d{2}|6([0-3]\d|4[0-7])))))))))$|^-2147483648$', '[a-z]', 'if', 'then', 'else', 'while', 'do'] #list of keyword and symbols
+    space = ' '
+    newline = '\n'
+    tab = '\t'
+    t = ''  
+    for i, char in enumerate(string):           
+        if char != space and char != newline and char != tab:  
+            t += char
+        if(i+1 < len(string)):
+            if string[i+1] == space or string[i+1] == newline or string[i+1] == tab or string[i+1] in KWS or t in KWS :
+                if t != '':
+                    tok = getToken(t)
+                    if tok == 'LEXICAL_ERROR':
+                        print('error')
+                        exit()
+                    tokList.append(tok)
+                    t = ''
+        else:              
+            if t != '':
+                tok = getToken(t)
+                if tok == 'LEXICAL_ERROR':
+                        print('error')
+                        exit()
+                tokList.append(tok)
+#--------------------------------------------------------------------------------------------------------------
+
+#---------PARSER-----------------------------------------------------------------------------------------------
 def convertTokens(t):
     tok = ''
     if t == 'LP: "("':
@@ -34,11 +124,11 @@ def convertTokens(t):
         tok = 'num'
     return tok
 
-#gets next token from the scanner
 def getNextToken():     
     global tokenArr
     if (count < len(tokenArr)):
         return tokenArr[count]
+
 
 def parsingTable(top, token):
     x = '';
@@ -98,19 +188,14 @@ def parsingTable(top, token):
             return['<paren_expr>']
     return x;
 
-
-def main():
-    global count
-    global tokenArr
+def parse():
+    global count        #count in tokenArr
+    global tokenArr     # new list of tokens to be parsed
+    global tokList      # list of tokens from scanner
     terminals = {'LP', 'RP', 'COMP', 'ASGN', 'SC', 'ADD', 'SUB', 'IF', 'THEN', 'WHILE', 'DO', 'id', 'num', '$'}
     nonterminals = {'<program>', '<statement_list>', '<statement>', '<paren_expr>', '<expr>', '<test>', '<test_opt>', '<sum>', '<sum_opt>', '<term>'}
-    arr = ['id: "i"', 'ASGN: "="', 'num: "1"', 'SC: ";"', 'WHILE: "while"', 'LP: "("', 'id: "i"', 'COMPARE: "<"', 'num: "10"', 'RP: ")"', 'id: "i"', 'ASGN: "="', 'id: "i"', 'ADD: "+"', 'num: "1"','SC: ";"'] #this will be the input from tokens.txt
-    #arr = ['id: "x"' , 'ASGN: "="', 'num: "10"', 'SC: ";"', 'id: "i"', 'ASGN: "="', 'LP: "("', 'LP: "("', 'id: "i"', 'ADD: "+"', 'num: "5"', 'RP: ")"', 'SUB: "-"', 'LP: "("',' id: "x"', 'ADD: "+"', 'id: "i"', 'RP: ")"', 'RP: ")"', 'SC: ";"'] #from in5.tinyc
-    #arr = ['IF: "if"', 'LP: "("', 'num: "10"', 'COMPARE: "<"', 'id: "z"', 'RP: ")"', 'id: "z"', 'ASGN: "="', 'num: "0"', 'SC: ";"']    #from in4.tinyc
-    #arr = ['LEXICAL_ERROR']        #from in_err1.tinyc
-    #arr = ['id: "a"','ASGN: "="', 'LEXICAL_ERROR']     #from in_err2.tinyc
-    for i in range(len(arr)):
-        t = convertTokens(arr[i])
+    for i in range(len(tokList)):
+        t = convertTokens(tokList[i])
         tokenArr.append(t)
     stack = []
     token = getNextToken() 
@@ -142,10 +227,11 @@ def main():
                 print("error")
                 break
         top = stack[-1]
+#--------------------------------------------------------------------------------------------------------
 
+def main():
+    scanner()
+    parse()
 
 if __name__ == "__main__":
     main()
-
-#SOURCES:
-#https://thepythonguru.com/python-builtin-functions/reversed/
