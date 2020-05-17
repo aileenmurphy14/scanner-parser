@@ -1,4 +1,20 @@
-#Predictive parser for TinyC language
+'''
+Predictive Parser for LL(1) TinyC language based on the following grammar: 
+<program> ::= <statement_list>
+<statement_list> ::= <statement> SC <statement_list> | ∈
+<statement> ::= IF <paren_expr> <statement> |
+                WHILE <paren_expr> <statement> |
+                DO <statement> WHILE <paren_expr> |
+                id ASGN <expr> |
+                SC
+<paren_expr> ::= LP <expr> RP
+<expr> ::= <test>
+<test> ::= <sum> <test_opt>
+<test_opt> ::= COMPARE <sum> | ∈
+<sum> ::= <term> <sum_opt>
+<sum_opt> ::= ADD <term> <sum_opt> | SUB <term> <sum_opt> | ∈
+<term> ::= id | num | <paren_expr>
+'''
 import re
 import sys
 
