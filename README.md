@@ -1,2 +1,2 @@
 # scanner-parser
-Predictive parser for TinyC language.
+Predictive parser for LL(1) TinyC language.
