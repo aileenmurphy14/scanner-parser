@@ -1,2 +1,2 @@
 # scanner-parser
-Predictive parser for LL(1) TinyC language.
+Top-down predictive LL(1) parser written in Python.
