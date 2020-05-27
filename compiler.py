@@ -106,12 +106,10 @@ def scanner():
 #--------------------------------------------------------------------------------------------------------------
 
 #---------PARSER-----------------------------------------------------------------------------------------------
-
 def getNextToken():     
     global tokList
     if (count < len(tokList)):
         return tokList[count]
-
 
 def parsingTable(top, token):
     x = '';
@@ -123,7 +121,6 @@ def parsingTable(top, token):
             return['<statement>', 'SC', '<statement_list>']
         else:
             return ['e']
-
     elif(top == '<statement>'):
         if(token == 'IF'):
             return['IF', '<paren_expr>', '<statement>']
@@ -135,25 +132,19 @@ def parsingTable(top, token):
             return ['id','ASGN', '<expr>']
         elif(token == 'SC'):
             return['SC'] 
-
     elif(top == '<paren_expr>'):
         return['LP', '<expr>', 'RP']
-
     elif(top == '<expr>'):
-        return['<test>']
-  
+        return['<test>'] 
     elif(top == '<test>'):
         return ['<sum>', '<test_opt>']
-
     elif(top == '<test_opt>'):
         if(token=='COMPARE'):
             return['COMPARE', '<sum>']
         else:
             return['e']
-
     elif(top == '<sum>'):
         return['<term>', '<sum_opt>']
-
     elif(top == '<sum_opt>'):
         if(token == 'ADD'):
             return ['ADD', '<term>', '<sum_opt>']
@@ -161,7 +152,6 @@ def parsingTable(top, token):
             return ['SUB', '<term>', '<sum_opt>']
         else:
             return[EPSILON]
-
     elif(top == '<term>'):
         if(token == 'id'):
             return['id']
@@ -207,7 +197,6 @@ def parser():
                 break
         top = stack[-1]
 #--------------------------------------------------------------------------------------------------------
-
 def main():
     scanner()
     parser()
