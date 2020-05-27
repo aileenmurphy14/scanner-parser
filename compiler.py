@@ -21,7 +21,6 @@ import sys
 #global variables
 EPSILON  = "e"
 count = 0
-tokenArr = []
 tokList = []   
 
 def getFile():
@@ -34,33 +33,31 @@ def getFile():
 #this function matches the string to a keyword or symbol and adds it to the list
 def getToken(t):
     if t == '(':
-        tok = '''LP: "("'''
+        tok = 'LP'
     elif t == ')':
-        tok = '''RP: ")"'''
+        tok = 'RP'
     elif t == '<':
-        tok = '''COMPARE: "<"'''
+        tok = 'COMPARE'
     elif t == '=':
-        tok = '''ASGN: "="'''
+        tok = 'ASGN'
     elif t == ';':
-        tok = '''SC: ";"'''
+        tok = 'SC'
     elif t == '+':
-        tok = '''ADD: "+"'''
+        tok = 'ADD'
     elif t == '-':
-        tok = '''SUB: "-"'''
+        tok = 'SUB'
     elif t == 'if':
-        tok = '''IF: "if"'''
+        tok = 'IF'
     elif t == 'then':
-        tok = '''THEN: "then"'''
-    elif t == 'else':
-        tok = '''ELSE: "else"'''
+        tok = 'THEN'
     elif t == 'while':
-        tok = '''WHILE: "while"'''
+        tok = 'WHILE'
     elif t == 'do':
-        tok = '''DO: "do"'''
+        tok = 'DO'
     elif findId(t)==True:
-        tok = "id: "+ '''"'''+ t + '''"'''
+        tok = 'id'
     elif findNum(t)==True:
-        tok = "num: "+ '''"'''+ t + '''"''' 
+        tok = 'num'
     else:
         tok = 'LEXICAL_ERROR'
     return tok
@@ -78,8 +75,7 @@ def findNum(t):
     if x:
         return True
 
-#This function is a "by hand" Scanner for the modified Tiny-C language. It outputs a dictionary of symbols and tokens extracted from an input source
-#code into an array to be parsed. 
+#This function is a "by hand" Scanner. It outputs a dictionary of symbols and tokens extracted from an input source code into an array to be parsed. 
 def scanner():
     global tokList
     string = getFile();    
@@ -110,41 +106,10 @@ def scanner():
 #--------------------------------------------------------------------------------------------------------------
 
 #---------PARSER-----------------------------------------------------------------------------------------------
-def convertTokens(t):
-    tok = ''
-    if t == 'LP: "("':
-        tok = 'LP'
-    elif t == 'RP: ")"':
-        tok = 'RP'
-    elif t == 'COMPARE: "<"':
-        tok = 'COMP'
-    elif t == 'ASGN: "="':
-        tok = 'ASGN'
-    elif t == 'SC: ";"':
-        tok = 'SC'
-    elif t == 'ADD: "+"':
-        tok = 'ADD'
-    elif t == 'SUB: "-"':
-        tok = 'SUB'
-    elif t == 'IF: "if"':
-        tok = 'IF'
-    elif t == 'THEN: "then"':
-        tok = 'THEN'
-    elif t == 'WHILE: "while"':
-        tok = 'WHILE'
-    elif t == 'DO: "do"':
-        tok = 'DO'
-    elif "id" in t:
-        tok = 'id'
-    elif "num" in t:
-        tok = 'num'
-    return tok
-
 def getNextToken():     
-    global tokenArr
-    if (count < len(tokenArr)):
-        return tokenArr[count]
-
+    global tokList
+    if (count < len(tokList)):
+        return tokList[count]
 
 def parsingTable(top, token):
     x = '';
@@ -156,7 +121,6 @@ def parsingTable(top, token):
             return['<statement>', 'SC', '<statement_list>']
         else:
             return ['e']
-
     elif(top == '<statement>'):
         if(token == 'IF'):
             return['IF', '<paren_expr>', '<statement>']
@@ -168,25 +132,19 @@ def parsingTable(top, token):
             return ['id','ASGN', '<expr>']
         elif(token == 'SC'):
             return['SC'] 
-
     elif(top == '<paren_expr>'):
         return['LP', '<expr>', 'RP']
-
     elif(top == '<expr>'):
-        return['<test>']
-  
+        return['<test>'] 
     elif(top == '<test>'):
         return ['<sum>', '<test_opt>']
-
     elif(top == '<test_opt>'):
-        if(token=='COMP'):
-            return['COMP', '<sum>']
+        if(token=='COMPARE'):
+            return['COMPARE', '<sum>']
         else:
             return['e']
-
     elif(top == '<sum>'):
         return['<term>', '<sum_opt>']
-
     elif(top == '<sum_opt>'):
         if(token == 'ADD'):
             return ['ADD', '<term>', '<sum_opt>']
@@ -194,7 +152,6 @@ def parsingTable(top, token):
             return ['SUB', '<term>', '<sum_opt>']
         else:
             return[EPSILON]
-
     elif(top == '<term>'):
         if(token == 'id'):
             return['id']
@@ -204,15 +161,11 @@ def parsingTable(top, token):
             return['<paren_expr>']
     return x;
 
-def parse():
+def parser():
     global count        #count in tokenArr
-    global tokenArr     # new list of tokens to be parsed
     global tokList      # list of tokens from scanner
-    terminals = {'LP', 'RP', 'COMP', 'ASGN', 'SC', 'ADD', 'SUB', 'IF', 'THEN', 'WHILE', 'DO', 'id', 'num', '$'}
+    terminals = {'LP', 'RP', 'COMPARE', 'ASGN', 'SC', 'ADD', 'SUB', 'IF', 'THEN', 'WHILE', 'DO', 'id', 'num', '$'}
     nonterminals = {'<program>', '<statement_list>', '<statement>', '<paren_expr>', '<expr>', '<test>', '<test_opt>', '<sum>', '<sum_opt>', '<term>'}
-    for i in range(len(tokList)):
-        t = convertTokens(tokList[i])
-        tokenArr.append(t)
     stack = []
     token = getNextToken() 
     count = count + 1
@@ -244,10 +197,9 @@ def parse():
                 break
         top = stack[-1]
 #--------------------------------------------------------------------------------------------------------
-
 def main():
     scanner()
-    parse()
+    parser()
 
 if __name__ == "__main__":
     main()
